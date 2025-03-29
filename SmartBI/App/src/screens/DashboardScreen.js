@@ -115,10 +115,6 @@ const DashboardScreen = () => {
 
     return (
         <StyledView className="flex-1 bg-gray-900">
-            <StyledView className="bg-gray-800/50 p-6 pt-12 backdrop-blur-lg">
-                <StyledText className="text-white text-2xl font-bold">SmartBI</StyledText>
-                <StyledText className="text-gray-400 mt-1">Welcome back!</StyledText>
-            </StyledView>
 
             <StyledScrollView className="flex-1 p-4">
                 <StyledText className="text-xl font-bold mb-4 text-white">Overview</StyledText>

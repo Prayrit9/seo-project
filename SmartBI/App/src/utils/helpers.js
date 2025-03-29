@@ -1,5 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from 'react-native';
+import { uploadDocument } from '../services/api';
 
 export const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -22,7 +23,7 @@ export const pickImage = async () => {
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [4, 3],
-            quality: 1,
+            quality: 0.8,
         });
 
         if (!result.canceled) {
@@ -30,6 +31,7 @@ export const pickImage = async () => {
         }
         return null;
     } catch (error) {
+        console.error('Image picker error:', error);
         Alert.alert('Error', 'Failed to pick image');
         return null;
     }
@@ -37,19 +39,51 @@ export const pickImage = async () => {
 
 export const scanDocument = async () => {
     try {
+        // Request camera permissions
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission Required', 'Camera permission is required to scan documents.');
+            return null;
+        }
+
+        // Launch camera
         const result = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [4, 3],
-            quality: 1,
+            quality: 0.8,
         });
 
         if (!result.canceled) {
-            return result.assets[0].uri;
+            const imageUri = result.assets[0].uri;
+            console.log('Starting document upload:', imageUri);
+
+            // Upload document using the API service
+            const uploadResult = await uploadDocument(imageUri);
+
+            if (!uploadResult.success) {
+                console.error('Upload failed:', uploadResult.error);
+                Alert.alert(
+                    'Upload Failed',
+                    `Failed to upload document: ${uploadResult.error}`
+                );
+                return null;
+            }
+
+            console.log('Upload successful:', uploadResult.data);
+            return {
+                success: true,
+                uri: imageUri,
+                data: uploadResult.data
+            };
         }
         return null;
     } catch (error) {
-        Alert.alert('Error', 'Failed to scan document');
+        console.error('Scan error:', error);
+        Alert.alert(
+            'Error',
+            'Failed to scan document. Please try again.'
+        );
         return null;
     }
 };
